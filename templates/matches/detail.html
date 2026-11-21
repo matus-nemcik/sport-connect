@@ -27,7 +27,7 @@
       </p>
 
     {% elif editing %}
-      <form method="post" novalidate>
+      <form method="post" novalidate data-draft="tip-{{ match.pk }}">
         {% csrf_token %}
         <div class="score-inputs">
           <div><div class="team-label">{{ match.home_team }}</div>
@@ -84,8 +84,8 @@
       <div class="bet-score">{{ b.score }}</div>
       <form method="post" action="{% url 'matches:react' b.pk %}" class="reactions">
         {% csrf_token %}<input type="hidden" name="community" value="{{ community.pk }}">
-        <button class="react-btn like" name="value" value="like" aria-pressed="{% if b.my_reaction == 1 %}true{% else %}false{% endif %}" title="Agree">{% icon "thumb-up" %}{{ b.likes }}<span class="sr-only"> agree</span></button>
-        <button class="react-btn dislike" name="value" value="dislike" aria-pressed="{% if b.my_reaction == -1 %}true{% else %}false{% endif %}" title="Disagree">{% icon "thumb-down" %}{{ b.dislikes }}<span class="sr-only"> disagree</span></button>
+        <button class="react-btn like" type="submit" name="value" value="like" aria-pressed="{% if b.my_reaction == 1 %}true{% else %}false{% endif %}" title="Agree">{% icon "thumb-up" %}<span data-count>{{ b.likes }}</span><span class="sr-only"> agree</span></button>
+        <button class="react-btn dislike" type="submit" name="value" value="dislike" aria-pressed="{% if b.my_reaction == -1 %}true{% else %}false{% endif %}" title="Disagree">{% icon "thumb-down" %}<span data-count>{{ b.dislikes }}</span><span class="sr-only"> disagree</span></button>
       </form>
     </div>
     {% empty %}

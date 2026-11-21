@@ -154,3 +154,16 @@ class ImportTests(TestCase):
         import_payload(self.PAYLOAD)
         self.assertEqual(user.stats()["points"], 3)
         self.assertEqual(League.objects.get(code="PD").name, "Primera Division")
+
+
+class ReactionTests(TestCase):
+    def test_background_reaction_returns_counts(self):
+        a = User.objects.create_user("a@x.sk", "pw", nickname="A")
+        b = User.objects.create_user("b@x.sk", "pw", nickname="B")
+        p = Prediction.objects.create(user=b, match=make_match(), home_score=1, away_score=0)
+        self.client.force_login(a)
+        url = reverse("matches:react", args=[p.pk])
+        r = self.client.post(url, {"value": "like"}, headers={"X-Requested-With": "fetch"})
+        self.assertEqual(r.json(), {"likes": 1, "dislikes": 0, "mine": 1})
+        r = self.client.post(url, {"value": "like"}, headers={"X-Requested-With": "fetch"})
+        self.assertEqual(r.json(), {"likes": 0, "dislikes": 0, "mine": None})

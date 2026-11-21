@@ -5,7 +5,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -142,6 +142,12 @@ def react(request, pk):
         existing.delete()  # clicking the same reaction again removes it
     else:
         Reaction.objects.update_or_create(prediction=prediction, user=request.user, defaults={"value": value})
+    if request.headers.get("X-Requested-With") == "fetch":
+        # Background request from app.js: the page is not reloaded, so an unsaved tip stays.
+        counts = prediction.reactions.aggregate(
+            likes=Count("pk", filter=Q(value=Reaction.LIKE)), dislikes=Count("pk", filter=Q(value=Reaction.DISLIKE)))
+        mine = Reaction.objects.filter(prediction=prediction, user=request.user).values_list("value", flat=True).first()
+        return JsonResponse({**counts, "mine": mine})
     url = prediction.match.get_absolute_url()
     if request.POST.get("community"):
         url += f"?community={request.POST['community']}"
