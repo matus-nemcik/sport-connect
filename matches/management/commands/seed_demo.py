@@ -1,10 +1,12 @@
 """Demo data for local development and usability testing.
 
     python manage.py seed_demo              # demo users, community, matches and tips
-    python manage.py seed_demo --no-matches # only users and community (real API data)
+    python manage.py seed_demo --real       # users, community and tips on real API matches
+    python manage.py seed_demo --no-matches # only users and community
 
 All demo users have the password given by --password (default: sportconnect).
 """
+import random
 from datetime import datetime, time, timedelta
 
 from django.core.management.base import BaseCommand
@@ -79,6 +81,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--no-matches", action="store_true", help="Skip demo leagues, matches and tips.")
+        parser.add_argument("--real", action="store_true",
+                            help="No demo matches; give demo users tips on matches imported from the API.")
         parser.add_argument("--password", default="sportconnect")
 
     @transaction.atomic
@@ -98,11 +102,43 @@ class Command(BaseCommand):
         for nick in ("Tondo", "Pavol", "Marek", "Jana", "Peter"):
             Membership.objects.get_or_create(community=friends, user=users[nick])
 
-        if not opts["no_matches"]:
+        if opts["real"]:
+            self._tips_on_real_matches(users)
+        elif not opts["no_matches"]:
             self._matches(users)
         self.stdout.write(self.style.SUCCESS(
             f"Demo data ready. Log in as pavol@example.com / {opts['password']} "
             f"(also tondo@, marek@, jana@, peter@example.com)."))
+
+    def _tips_on_real_matches(self, users):
+        """Demo tips on real (imported) matches, so rankings and community bets have data.
+
+        Pavol gets no tips on upcoming matches, so testers can place their own.
+        """
+        now = timezone.now()
+        real = Match.objects.filter(external_id__isnull=False)
+        finished = list(real.filter(status=Match.FINISHED, home_score__isnull=False).order_by("-kickoff")[:12])
+        upcoming = list(real.filter(status=Match.SCHEDULED, kickoff__gt=now).order_by("kickoff")[:8])
+        if not finished and not upcoming:
+            self.stdout.write(self.style.WARNING("No imported matches. Run `python manage.py sync_matches` first."))
+            return
+        rng = random.Random(2026)  # same tips every run
+        pool = [(1, 0), (2, 1), (1, 1), (0, 0), (2, 0), (0, 1), (1, 2), (3, 1), (2, 2), (0, 2)]
+        for nick, user in users.items():
+            for m in finished:
+                if rng.random() < 0.8:
+                    # some exact hits so the ranking is interesting
+                    h, a = (m.home_score, m.away_score) if rng.random() < 0.2 else rng.choice(pool)
+                    Prediction.objects.update_or_create(user=user, match=m, defaults={"home_score": h, "away_score": a})
+            if nick == "Pavol":
+                continue
+            for m in upcoming:
+                if rng.random() < 0.6:
+                    h, a = rng.choice(pool)
+                    Prediction.objects.update_or_create(user=user, match=m, defaults={"home_score": h, "away_score": a})
+        for m in finished:
+            m.evaluate()
+        self.stdout.write(f"Demo tips placed on {len(finished)} finished and {len(upcoming)} upcoming real matches.")
 
     def _matches(self, users):
         leagues = {}

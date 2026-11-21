@@ -22,7 +22,9 @@ source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env                 # a doplň FOOTBALL_DATA_TOKEN
 python manage.py migrate
-python manage.py seed_demo           # ukážkové účty, komunita, zápasy a tipy
+python manage.py sync_matches        # reálne zápasy z football-data.org
+python manage.py seed_demo --real    # ukážkové účty, komunita a tipy na reálne zápasy
+# bez API kľúča: python manage.py seed_demo  (ukážkové zápasy bez lôg)
 python manage.py createsuperuser     # účet do administrácie /admin/
 python manage.py runserver
 ```
@@ -85,6 +87,6 @@ bezplatná databáza na Render po 30 dňoch expiruje).
 1. Na [neon.tech](https://neon.tech) vytvoriť projekt (región Frankfurt) a skopírovať connection string.
 2. Na [render.com](https://render.com): **New → Blueprint**, vybrať tento repozitár a doplniť premenné
    `DATABASE_URL` (z Neonu) a `FOOTBALL_DATA_TOKEN`.
-3. Po nasadení v záložke **Shell** spustiť `python manage.py seed_demo` a `python manage.py createsuperuser`.
+3. Po nasadení v záložke **Shell** spustiť `python manage.py sync_matches`, `python manage.py seed_demo --real` a `python manage.py createsuperuser`.
 
 Bezplatná služba na Render sa po 15 minútach bez návštevy uspí a prvé načítanie potom trvá asi minútu.
