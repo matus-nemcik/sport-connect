@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block body %}
+<main class="auth">
+  <span class="brand">Sport<span>Connect</span></span>
+  <h1>Create account</h1>
+  <p class="subtitle">Tip football results, join your friends' community and climb the ranking.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+    <button class="btn block" type="submit">Create account</button>
+  </form>
+  <p class="auth-foot">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+</main>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Ranking{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Ranking</h1><div class="subtitle">3 pts for an exact score, 1 pt for the correct winner or draw.</div></div></div>
+<div class="chips" style="padding-top:0;margin-bottom:12px" aria-label="Choose ranking">
+  {% for c in communities %}
+  <a class="chip" href="?community={{ c.pk }}" {% if c.pk == community.pk %}aria-current="true"{% endif %}>{% if c.is_global %}Global{% else %}{{ c.name }}{% endif %}</a>
+  {% endfor %}
+  {% if not is_member %}<span class="chip" aria-current="true">Global</span>{% endif %}
+</div>
+{% include "communities/_ranking_list.html" %}
+{% endblock %}

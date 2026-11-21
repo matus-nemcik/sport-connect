@@ -1,0 +1,42 @@
+{% load static ui %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}SportConnect{% endblock %} · SportConnect</title>
+  <meta name="theme-color" content="#eef0f4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233f37e0'/><circle cx='16' cy='16' r='8' fill='none' stroke='white' stroke-width='2.5'/></svg>">
+</head>
+<body>
+<div class="app {% if user.is_authenticated %}with-nav{% endif %}">
+  {% if messages %}
+  <div class="toasts" role="status" aria-live="polite">
+    {% for m in messages %}
+    <div class="toast {% if m.level_tag == 'error' %}error{% elif m.level_tag == 'info' %}info{% endif %}">
+      {% if m.level_tag == 'error' %}{% icon "alert" %}{% else %}{% icon "check-circle" %}{% endif %}{{ m }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block body %}
+  <main class="main">{% block content %}{% endblock %}</main>
+  {% if user.is_authenticated %}
+  <nav class="nav" aria-label="Main">
+    <span class="brand">Sport<span>Connect</span></span>
+    <a href="{% url 'matches:list' %}" {% if nav == 'matches' %}aria-current="page"{% endif %}>{% icon "ball" %}Matches</a>
+    <a href="{% url 'matches:my_bets' %}" {% if nav == 'bets' %}aria-current="page"{% endif %}>{% icon "ticket" %}My bets</a>
+    <a href="{% url 'communities:list' %}" {% if nav == 'groups' %}aria-current="page"{% endif %}>{% icon "users" %}Groups</a>
+    <a href="{% url 'ranking' %}" {% if nav == 'ranking' %}aria-current="page"{% endif %}>{% icon "trophy" %}Ranking</a>
+    <a href="{% url 'profile' %}" {% if nav == 'profile' %}aria-current="page"{% endif %}>{% icon "user" %}Profile</a>
+  </nav>
+  {% endif %}
+  {% endblock %}
+</div>
+<script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

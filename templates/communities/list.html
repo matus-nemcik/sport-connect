@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Groups{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Groups</h1>
+  <a class="icon-btn" href="{% url 'communities:create' %}" title="Create community" aria-label="Create community">{% icon "plus" %}</a>
+</div>
+
+<div class="list">
+  {% for c in mine %}
+  <a class="list-item" href="{% url 'communities:detail' c.pk %}">
+    <div class="avatar">{{ c.name|slice:":1"|upper }}</div>
+    <div class="grow"><strong>{{ c.name }}</strong><div class="small muted">{{ c.n }} member{{ c.n|pluralize }}{% if c.owner_id == user.pk %} · you own it{% endif %}</div></div>
+    {% include "communities/_privacy_tag.html" %}{% icon "chevron" %}
+  </a>
+  {% empty %}
+  <div class="empty"><strong>No communities yet</strong>Create one and invite your friends.</div>
+  {% endfor %}
+</div>
+<a class="btn secondary block" style="margin-top:12px" href="{% url 'communities:create' %}">{% icon "plus" %}Create community</a>
+
+<section class="section">
+  <div class="section-head"><h2>Discover public communities</h2></div>
+  <form method="get" class="search" role="search" style="margin-bottom:10px">{% icon "search" %}
+    <label class="sr-only" for="q">Search communities</label>
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="Search by name">
+  </form>
+  <div class="list">
+    {% for c in public %}
+    <div class="list-item">
+      <div class="avatar">{{ c.name|slice:":1"|upper }}</div>
+      <div class="grow"><strong>{{ c.name }}</strong><div class="small muted">{{ c.n }} member{{ c.n|pluralize }}{% if c.description %} · {{ c.description|truncatechars:60 }}{% endif %}</div></div>
+      <form method="post" action="{% url 'communities:join' c.pk %}">{% csrf_token %}<button class="btn sm" type="submit">Join</button></form>
+    </div>
+    {% empty %}
+    <div class="empty">{% if q %}No public community matches “{{ q }}”.{% else %}No other public communities right now.{% endif %}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

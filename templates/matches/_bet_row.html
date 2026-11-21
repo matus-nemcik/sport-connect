@@ -1,0 +1,11 @@
+{% load ui %}
+<a class="list-item" href="{% url 'matches:detail' p.match.pk %}">
+  <div class="grow">
+    <div class="eyebrow" style="font-size:11px">{{ p.match.league }} · {{ p.match.kickoff|date:"D j.n." }} {{ p.match.kickoff|time:"H:i" }}</div>
+    <strong>{{ p.match.home_team }} – {{ p.match.away_team }}</strong>
+    {% if p.match.has_result %}<div class="small muted">Result {{ p.match.home_score }}:{{ p.match.away_score }}</div>{% endif %}
+  </div>
+  <div class="bet-score">{{ p.score }}</div>
+  {% if p.points is not None %}<span class="tag {% if p.points == 3 %}success{% elif p.points %}primary{% endif %}">+{{ p.points }}</span>{% endif %}
+  {% icon "chevron" %}
+</a>

@@ -1,0 +1,20 @@
+{% load ui %}
+<a class="match-card" href="{% url 'matches:detail' m.pk %}">
+  <div class="card">
+    <div class="when">{% if m.status == "LIVE" %}<span class="tag danger">Live</span>{% else %}{{ m.kickoff|date:"D j.n." }}<b>{{ m.kickoff|time:"H:i" }}</b>{% endif %}</div>
+    <div class="teams">
+      <div class="team">{% crest m.home_team %}<span class="name">{{ m.home_team }}</span>{% if m.has_result %}<span class="score">{{ m.home_score }}</span>{% endif %}</div>
+      <div class="team">{% crest m.away_team %}<span class="name">{{ m.away_team }}</span>{% if m.has_result %}<span class="score">{{ m.away_score }}</span>{% endif %}</div>
+    </div>
+    <div class="match-side">
+      {% if m.my_tip %}
+        {% if m.my_tip.points is not None %}
+          <span class="tag {% if m.my_tip.points %}success{% endif %}">Tip {{ m.my_tip.score }} · +{{ m.my_tip.points }}</span>
+        {% else %}
+          <span class="tag success">{% icon "check" %}Tip {{ m.my_tip.score }}</span>
+        {% endif %}
+      {% elif m.is_open %}<span class="tag primary">Tip it</span>{% endif %}
+    </div>
+    {% icon "chevron" %}
+  </div>
+</a>

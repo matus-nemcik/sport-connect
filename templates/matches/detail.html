@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ match }}{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'matches:list' %}{% if not match.is_open %}?tab=closed{% endif %}">{% icon "back" %}Matches</a>
+<div class="eyebrow">{{ match.league }} · {{ match.kickoff|date:"D j. F" }}, {{ match.kickoff|time:"H:i" }}</div>
+<h1 class="versus" style="margin-top:6px">{{ match.home_team.name }} <span class="muted" style="font-weight:500">vs</span> {{ match.away_team.name }}</h1>
+{% if match.venue_display %}<div class="subtitle">{{ match.venue_display }}</div>{% endif %}
+
+<section class="section">
+  <div class="card" id="your-prediction">
+    <div class="section-head" style="margin-bottom:12px">
+      <h2>Your prediction</h2>
+      {% if my_tip and not editing %}<span class="status-line">{% icon "check-circle" %}Saved</span>{% endif %}
+    </div>
+
+    {% if not match.is_open %}
+      <div class="result-box">
+        <div><span class="small muted">Your tip</span><b>{% if my_tip %}{{ my_tip.score }}{% else %}–{% endif %}</b></div>
+        <div><span class="small muted">{% if match.status == "FINISHED" %}Final result{% elif match.status == "LIVE" %}Live{% else %}Result{% endif %}</span>
+          <b>{% if match.has_result %}{{ match.home_score }}:{{ match.away_score }}{% else %}–{% endif %}</b></div>
+      </div>
+      <p class="small muted" style="margin:10px 0 0">
+        {% if my_tip.points is not None %}You earned <strong class="{% if my_tip.points %}tag success{% endif %}">+{{ my_tip.points }} {{ my_tip.points|pluralize:"point,points" }}</strong>.
+        {% elif match.status == "FINISHED" %}Points will be added shortly.
+        {% else %}Tips are closed because the match has started.{% endif %}
+      </p>
+
+    {% elif editing %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="score-inputs">
+          <div><div class="team-label">{{ match.home_team }}</div>
+            <div class="stepper"><button type="button" data-step="-1" aria-label="Decrease {{ match.home_team }} goals">−</button>
+              <input type="number" name="home_score" min="0" max="20" inputmode="numeric" required aria-label="{{ match.home_team }} goals" value="{{ form.home_score.value|default_if_none:'' }}">
+              <button type="button" data-step="1" aria-label="Increase {{ match.home_team }} goals">+</button></div></div>
+          <span class="sep">:</span>
+          <div><div class="team-label">{{ match.away_team }}</div>
+            <div class="stepper"><button type="button" data-step="-1" aria-label="Decrease {{ match.away_team }} goals">−</button>
+              <input type="number" name="away_score" min="0" max="20" inputmode="numeric" required aria-label="{{ match.away_team }} goals" value="{{ form.away_score.value|default_if_none:'' }}">
+              <button type="button" data-step="1" aria-label="Increase {{ match.away_team }} goals">+</button></div></div>
+        </div>
+        {% if form.errors %}<p class="errors">Enter both scores (0–20).</p>{% endif %}
+        <div class="field" style="margin-top:14px">
+          <label for="comment">Comment for friends <span class="muted" style="font-weight:400">(optional)</span></label>
+          <input type="text" id="comment" name="comment" maxlength="140" value="{{ form.comment.value|default_if_none:'' }}" placeholder="Why do you think so?">
+        </div>
+        <p class="help" style="margin:-4px 0 14px">Final score. You can change it any time before kickoff. Exact score 3 pts, correct winner or draw 1 pt.</p>
+        <div class="row">
+          <button class="btn grow" type="submit">{% if my_tip %}Save changes{% else %}Save prediction{% endif %}</button>
+          {% if my_tip %}<a class="btn secondary" href="{{ match.get_absolute_url }}">Cancel</a>{% endif %}
+        </div>
+      </form>
+
+    {% else %}
+      <div class="tip-saved">
+        <div class="tip-score pop">{{ my_tip.home_score }} : {{ my_tip.away_score }}</div>
+        <div class="grow small muted">{{ match.home_team }} – {{ match.away_team }}{% if my_tip.comment %}<br>“{{ my_tip.comment }}”{% endif %}</div>
+        <a class="btn secondary sm" href="?edit=1">{% icon "edit" %}Edit tip</a>
+      </div>
+      <p class="help" style="margin-bottom:0">You can change your tip until {{ match.kickoff|date:"D j.n." }} {{ match.kickoff|time:"H:i" }}. Find all your tips in <a href="{% url 'matches:my_bets' %}">My bets</a>.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" id="community-bets">
+  <div class="section-head">
+    <h2>Community bets</h2>
+    {% if communities %}
+    <form method="get" class="select-inline" data-autosubmit>
+      <label class="sr-only" for="community">Community</label>
+      <select id="community" name="community">
+        {% for c in communities %}<option value="{{ c.pk }}" {% if c.pk == community.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+      <noscript><button class="btn sm secondary">Show</button></noscript>
+    </form>
+    {% endif %}
+  </div>
+  <div class="list">
+    {% for b in bets %}
+    <div class="list-item bet">
+      <div class="avatar">{{ b.user.initial }}</div>
+      <div class="grow"><strong>{{ b.user.nickname }}</strong>{% if b.comment %}<div class="comment">“{{ b.comment }}”</div>{% endif %}</div>
+      <div class="bet-score">{{ b.score }}</div>
+      <form method="post" action="{% url 'matches:react' b.pk %}" class="reactions">
+        {% csrf_token %}<input type="hidden" name="community" value="{{ community.pk }}">
+        <button class="react-btn like" name="value" value="like" aria-pressed="{% if b.my_reaction == 1 %}true{% else %}false{% endif %}" title="Agree">{% icon "thumb-up" %}{{ b.likes }}<span class="sr-only"> agree</span></button>
+        <button class="react-btn dislike" name="value" value="dislike" aria-pressed="{% if b.my_reaction == -1 %}true{% else %}false{% endif %}" title="Disagree">{% icon "thumb-down" %}{{ b.dislikes }}<span class="sr-only"> disagree</span></button>
+      </form>
+    </div>
+    {% empty %}
+    <div class="empty">
+      {% if community %}<strong>No tips from {{ community.name }} yet</strong>Be the first and invite your friends to tip too.
+      {% else %}<strong>You are not in any community</strong><a href="{% url 'communities:create' %}">Create one</a> to compare tips with friends.{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

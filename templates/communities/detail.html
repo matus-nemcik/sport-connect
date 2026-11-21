@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ community.name }}{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'communities:list' %}">{% icon "back" %}Groups</a>
+<div class="page-head" style="align-items:flex-start;margin-top:0">
+  <div class="grow">
+    <h1>{{ community.name }}</h1>
+    <div class="row small" style="margin-top:6px;gap:8px;flex-wrap:wrap">
+      {% include "communities/_privacy_tag.html" with c=community %}
+      <span class="muted">{{ community.members.count }} member{{ community.members.count|pluralize }}</span>
+    </div>
+    {% if community.description %}<p class="subtitle">{{ community.description }}</p>{% endif %}
+  </div>
+  {% if is_owner %}
+    <a class="btn secondary sm" href="{% url 'communities:settings' community.pk %}">{% icon "settings" %}Settings</a>
+  {% elif is_member %}
+    <form method="post" action="{% url 'communities:leave' community.pk %}">{% csrf_token %}<button class="btn secondary sm" type="submit">Leave</button></form>
+  {% else %}
+    <form method="post" action="{% url 'communities:join' community.pk %}">{% csrf_token %}<button class="btn sm" type="submit">Join</button></form>
+  {% endif %}
+</div>
+
+<nav class="tabs" aria-label="Community sections">
+  <a href="{% url 'communities:detail' community.pk %}" {% if tab == 'members' %}aria-current="page"{% endif %}>Members</a>
+  <a href="{% url 'communities:rankings' community.pk %}" {% if tab == 'rankings' %}aria-current="page"{% endif %}>Rankings</a>
+  <a href="{% url 'communities:bets' community.pk %}" {% if tab == 'bets' %}aria-current="page"{% endif %}>Bets</a>
+</nav>
+
+{% if tab == 'members' %}
+  {% if is_owner %}
+  <div class="card" style="margin-bottom:12px">
+    <form method="post" action="{% url 'communities:invite' community.pk %}" novalidate>
+      {% csrf_token %}
+      <label for="invite-email">Invite a friend by email</label>
+      <div class="inline-form">
+        <div class="grow"><input type="email" id="invite-email" name="email" placeholder="friend@email.com" required {% if show_invite %}autofocus{% endif %}></div>
+        <button class="btn" type="submit">{% icon "plus" %}Add</button>
+      </div>
+      <p class="help">Friends with an account are added right away; others join when they sign up with this email.</p>
+    </form>
+  </div>
+  {% endif %}
+  <div class="list">
+    {% for ms in memberships %}
+    <div class="list-item">
+      <div class="avatar">{{ ms.user.initial }}</div>
+      <div class="grow"><strong>{{ ms.user.nickname }}</strong>
+        {% if ms.user == user %}<span class="tag">You</span>{% endif %}
+        {% if ms.user_id == community.owner_id %}<span class="tag primary">Owner</span>{% endif %}
+        {% if ms.user.location %}<div class="small muted">{{ ms.user.location }}</div>{% endif %}
+      </div>
+      {% if is_owner and ms.user != user %}
+      <form method="post" action="{% url 'communities:remove_member' community.pk ms.user_id %}">{% csrf_token %}
+        <button class="link-btn danger small" type="submit">Remove</button></form>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% for inv in invitations %}
+    <div class="list-item">
+      <div class="avatar" style="background:#f1f2f6;color:var(--muted)">{% icon "mail" %}</div>
+      <div class="grow"><strong>{{ inv.email }}</strong><div class="small muted">Invited · joins after signing up</div></div>
+      <form method="post" action="{% url 'communities:cancel_invitation' community.pk inv.pk %}">{% csrf_token %}
+        <button class="link-btn small" type="submit">Cancel</button></form>
+    </div>
+    {% endfor %}
+  </div>
+
+{% elif tab == 'rankings' %}
+  {% include "communities/_ranking_list.html" %}
+
+{% elif tab == 'bets' %}
+  {% if match_options %}
+  <form method="get" class="field" data-autosubmit>
+    <label for="match">Match</label>
+    <select id="match" name="match">
+      {% for m in match_options %}<option value="{{ m.pk }}" {% if m.pk == selected.pk %}selected{% endif %}>{{ m.home_team }} vs {{ m.away_team }} · {{ m.kickoff|date:"j.n." }}</option>{% endfor %}
+    </select>
+    <noscript><button class="btn sm secondary" style="margin-top:8px">Show</button></noscript>
+  </form>
+  <div class="list">
+    {% for b in bets %}
+    <div class="list-item bet">
+      <div class="avatar">{{ b.user.initial }}</div>
+      <div class="grow"><strong>{{ b.user.nickname }}</strong>{% if b.comment %}<div class="comment">“{{ b.comment }}”</div>{% endif %}</div>
+      <div class="bet-score">{{ b.score }}</div>
+      {% if b.points is not None %}<span class="tag {% if b.points %}success{% endif %}">+{{ b.points }}</span>{% endif %}
+    </div>
+    {% empty %}
+    <div class="empty">No member has tipped this match yet.</div>
+    {% endfor %}
+  </div>
+  <a class="btn secondary block" style="margin-top:12px" href="{% url 'matches:detail' selected.pk %}?community={{ community.pk }}">Open match{% icon "chevron" %}</a>
+  {% else %}
+  <div class="card empty">No matches to show yet.</div>
+  {% endif %}
+{% endif %}
+{% endblock %}

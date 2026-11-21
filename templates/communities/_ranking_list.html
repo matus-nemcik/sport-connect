@@ -1,0 +1,13 @@
+<div class="list">
+  {% for r in rows %}
+  <div class="list-item {% if r.user == user %}me{% endif %}">
+    <div class="rank {% if r.rank <= 3 %}top{{ r.rank }}{% endif %}">{{ r.rank }}</div>
+    <div class="avatar">{{ r.user.initial }}</div>
+    <div class="grow"><strong>{{ r.user.nickname }}</strong>{% if r.user == user %} <span class="tag">You</span>{% endif %}
+      <div class="small muted">{{ r.stats.tips }} tip{{ r.stats.tips|pluralize }} · {{ r.stats.exact }} exact · {{ r.stats.success_rate }}% success</div></div>
+    <div class="points">{{ r.stats.points }}<small>pts</small></div>
+  </div>
+  {% empty %}
+  <div class="empty">Rankings will appear when results are available.</div>
+  {% endfor %}
+</div>

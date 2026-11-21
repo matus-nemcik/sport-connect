@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Matches{% endblock %}
+{% block content %}
+<nav class="tabs" aria-label="Match status" style="margin-bottom:0">
+  <a href="?tab=upcoming" {% if tab == 'upcoming' %}aria-current="page"{% endif %}>Upcoming</a>
+  <a href="?tab=closed" {% if tab == 'closed' %}aria-current="page"{% endif %}>Closed</a>
+</nav>
+
+<div class="toolbar" data-toolbar>
+  <form method="get" role="search" data-autosubmit>
+    <input type="hidden" name="tab" value="{{ tab }}">
+    {% if league_code %}<input type="hidden" name="league" value="{{ league_code }}">{% endif %}
+    <div class="search">{% icon "search" %}
+      <label class="sr-only" for="q">Search team</label>
+      <input type="search" id="q" name="q" value="{{ q }}" placeholder="Search team, e.g. Barcelona" autocomplete="off">
+    </div>
+  </form>
+  <div class="chips" aria-label="Filter by league">
+    <a class="chip" href="?tab={{ tab }}{% if q %}&q={{ q|urlencode }}{% endif %}" {% if not league_code %}aria-current="true"{% endif %}>All</a>
+    {% if has_favorites %}<a class="chip" href="?tab={{ tab }}&league=fav{% if q %}&q={{ q|urlencode }}{% endif %}" {% if league_code == 'fav' %}aria-current="true"{% endif %}>{% icon "star" True %}Favourites</a>{% endif %}
+    {% for l in leagues %}
+    <a class="chip" href="?tab={{ tab }}&league={{ l.code }}{% if q %}&q={{ q|urlencode }}{% endif %}" {% if league_code == l.code %}aria-current="true"{% endif %}>{{ l.name }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+{% for league, items in groups %}
+<section>
+  <div class="league-head">
+    <span class="eyebrow">{% if league.emblem_url %}<img src="{{ league.emblem_url }}" alt="">{% endif %}{{ league.name }}{% if league.country %} <span class="muted" style="font-weight:500">· {{ league.country }}</span>{% endif %}</span>
+    <form method="post" action="{% url 'matches:favorite_league' league.code %}">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+      {% with fav=user.favorite_league_id %}
+      <button class="star-btn" type="submit" aria-pressed="{% if fav == league.pk %}true{% else %}false{% endif %}"
+              title="{% if fav == league.pk %}Remove favourite league{% else %}Set as favourite league{% endif %}">
+        {% if fav == league.pk %}{% icon "star" True %}{% else %}{% icon "star" %}{% endif %}
+        <span class="sr-only">Favourite league</span></button>
+      {% endwith %}
+    </form>
+  </div>
+  {% for m in items %}{% include "matches/_card.html" %}{% endfor %}
+</section>
+{% empty %}
+<div class="card empty" style="margin-top:12px">
+  {% if q or league_code %}
+    <strong>No matches found</strong>Try another team name or <a href="?tab={{ tab }}">show all leagues</a>.
+  {% elif tab == 'closed' %}
+    <strong>No finished matches yet</strong>Results from the last two weeks will appear here.
+  {% else %}
+    <strong>No upcoming matches</strong>New fixtures are loaded automatically.
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}New community{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'communities:list' %}">{% icon "back" %}Groups</a>
+<h1>New community</h1>
+<p class="subtitle" style="margin-bottom:18px">Bring your friends together for matchday.</p>
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  {% include "partials/field.html" with field=form.name %}
+  {% include "partials/privacy.html" with field=form.privacy %}
+  {% include "partials/field.html" with field=form.invite_emails %}
+  {% include "partials/field.html" with field=form.description %}
+  <button class="btn block" type="submit">Create community</button>
+</form>
+{% endblock %}

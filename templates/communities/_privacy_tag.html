@@ -1,0 +1,1 @@
+{% load ui %}{% if c.is_global %}<span class="tag primary">{% icon "globe" %}Everyone</span>{% elif c.is_private %}<span class="tag">{% icon "lock" %}Private</span>{% else %}<span class="tag">{% icon "globe" %}Public</span>{% endif %}

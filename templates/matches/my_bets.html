@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}My bets{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>My bets</h1><div class="subtitle">{{ stats.points }} points · {{ stats.success_rate }}% success rate</div></div></div>
+
+<section class="section">
+  <div class="section-head"><h2>Upcoming</h2><span class="small muted">editable until kickoff</span></div>
+  <div class="list">
+    {% for p in upcoming %}{% include "matches/_bet_row.html" %}{% empty %}
+    <div class="empty"><strong>No open tips</strong><a href="{% url 'matches:list' %}">Browse matches</a> and place your first tip.</div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if in_play %}
+<section class="section">
+  <div class="section-head"><h2>Waiting for result</h2></div>
+  <div class="list">{% for p in in_play %}{% include "matches/_bet_row.html" %}{% endfor %}</div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head"><h2>Evaluated</h2><span class="small muted">3 pts exact · 1 pt winner/draw</span></div>
+  <div class="list">
+    {% for p in finished %}{% include "matches/_bet_row.html" %}{% empty %}
+    <div class="empty">Your points appear here after the matches finish.</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

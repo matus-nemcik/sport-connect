@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+<main class="auth">
+  <span class="brand">Sport<span>Connect</span></span>
+  <h1>Welcome back</h1>
+  <p class="subtitle">Sign in to tip matches and compete with your friends.</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-error">Wrong email or password. Please try again.</div>{% endif %}
+    {% include "partials/field.html" with field=form.username %}
+    {% include "partials/field.html" with field=form.password %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn block" type="submit">Sign in</button>
+  </form>
+  <p class="auth-foot">New here? <a href="{% url 'register' %}">Create an account</a></p>
+</main>
+{% endblock %}

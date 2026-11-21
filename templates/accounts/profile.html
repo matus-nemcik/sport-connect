@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Profile</h1>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn secondary sm" type="submit">{% icon "logout" %}Sign out</button></form>
+</div>
+
+<div class="card row">
+  <div class="avatar lg">{{ user.initial }}</div>
+  <div class="grow">
+    <h2>{{ user.nickname }}</h2>
+    <div class="muted small">{{ user.email }}{% if user.location %} · {{ user.location }}{% endif %}</div>
+    <div class="row small" style="margin-top:6px;gap:6px;flex-wrap:wrap">
+      {% if user.favorite_team %}<span class="tag primary">{% icon "star" True %}{{ user.favorite_team }}</span>{% endif %}
+      {% if user.favorite_league %}<span class="tag primary">{% icon "star" True %}{{ user.favorite_league }}</span>{% endif %}
+    </div>
+  </div>
+  {% if not editing %}<a class="btn secondary sm" href="?edit=1">{% icon "edit" %}Edit</a>{% endif %}
+</div>
+
+{% if editing %}
+<form method="post" class="card" style="margin-top:10px" novalidate>
+  {% csrf_token %}
+  {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+  <div class="row"><button class="btn" type="submit">Save profile</button><a class="btn secondary" href="{% url 'profile' %}">Cancel</a></div>
+</form>
+{% endif %}
+
+<section class="section">
+  <div class="section-head"><h2>My statistics</h2><a class="small" href="{% url 'matches:my_bets' %}">All my bets</a></div>
+  <div class="stats">
+    <div class="stat"><b>{{ stats.points }}</b><span>Points</span></div>
+    <div class="stat"><b>{{ stats.tips }}</b><span>Tips placed</span></div>
+    <div class="stat"><b>{{ stats.success_rate }}%</b><span>Success rate</span></div>
+    <div class="stat"><b>{{ stats.exact }}</b><span>Exact scores</span></div>
+  </div>
+  <p class="help">Success rate = share of evaluated tips that earned points ({{ stats.correct }} of {{ stats.evaluated }}). Exact score 3 pts, correct winner or draw 1 pt.</p>
+</section>
+{% endblock %}

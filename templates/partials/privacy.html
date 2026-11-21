@@ -1,0 +1,10 @@
+{% load ui %}
+<fieldset class="field" style="border:0;padding:0;margin:0 0 14px">
+  <legend class="label">Privacy</legend>
+  <div class="segmented">
+    <input type="radio" name="{{ field.html_name }}" id="privacy-private" value="private" {% if field.value == "private" or not field.value %}checked{% endif %}>
+    <label for="privacy-private">{% icon "lock" %}<span>Private<small>Only people you invite can join.</small></span></label>
+    <input type="radio" name="{{ field.html_name }}" id="privacy-public" value="public" {% if field.value == "public" %}checked{% endif %}>
+    <label for="privacy-public">{% icon "globe" %}<span>Public<small>Anyone can find and join it.</small></span></label>
+  </div>
+</fieldset>
