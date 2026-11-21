@@ -77,8 +77,14 @@ a môže ju opustiť. Pozvaný e-mail bez účtu sa stane členom komunity hneď
 - Potvrdenie akcií (toast) sa vysunie s animáciou a po chvíli zmizne.
 - Súkromie komunity (predvolene súkromná) a pozvanie priateľov sa nastavuje priamo pri jej vytvorení.
 
-## Nasadenie (Render)
+## Nasadenie (Render + Neon)
 
-V repozitári je `render.yaml`. Na [render.com](https://render.com): **New → Blueprint**, vybrať repozitár,
-doplniť `FOOTBALL_DATA_TOKEN`. Po nasadení v Render Shell spustiť `python manage.py seed_demo --no-matches`
-(ukážkové účty a komunita) a `python manage.py createsuperuser`.
+Aplikácia beží na Render (bezplatná webová služba), databáza na Neon (bezplatný PostgreSQL bez expirácie;
+bezplatná databáza na Render po 30 dňoch expiruje).
+
+1. Na [neon.tech](https://neon.tech) vytvoriť projekt (región Frankfurt) a skopírovať connection string.
+2. Na [render.com](https://render.com): **New → Blueprint**, vybrať tento repozitár a doplniť premenné
+   `DATABASE_URL` (z Neonu) a `FOOTBALL_DATA_TOKEN`.
+3. Po nasadení v záložke **Shell** spustiť `python manage.py seed_demo` a `python manage.py createsuperuser`.
+
+Bezplatná služba na Render sa po 15 minútach bez návštevy uspí a prvé načítanie potom trvá asi minútu.
