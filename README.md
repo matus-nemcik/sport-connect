@@ -87,6 +87,17 @@ bezplatná databáza na Render po 30 dňoch expiruje).
 1. Na [neon.tech](https://neon.tech) vytvoriť projekt (región Frankfurt) a skopírovať connection string.
 2. Na [render.com](https://render.com): **New → Blueprint**, vybrať tento repozitár a doplniť premenné
    `DATABASE_URL` (z Neonu) a `FOOTBALL_DATA_TOKEN`.
-3. Po nasadení v záložke **Shell** spustiť `python manage.py sync_matches`, `python manage.py seed_demo --real` a `python manage.py createsuperuser`.
+3. Bezplatná služba na Render nemá prístup do Shellu, preto jednorazové príkazy spúšťame z vlastného počítača
+   priamo proti databáze na Neone (v priečinku projektu, s aktivovaným `.venv`):
+   ```
+   export DATABASE_URL="postgresql://...connection string z Neonu..."
+   python manage.py migrate
+   python manage.py sync_matches
+   python manage.py seed_demo --real --password VlastneHeslo
+   python manage.py createsuperuser
+   unset DATABASE_URL        # späť na lokálnu databázu db.sqlite3
+   ```
 
 Bezplatná služba na Render sa po 15 minútach bez návštevy uspí a prvé načítanie potom trvá asi minútu.
+
+Každý push do vetvy `main` na GitHube Render nasadí automaticky; dáta v databáze na Neone pritom zostávajú.
